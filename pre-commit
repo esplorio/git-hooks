@@ -1,0 +1,19 @@
+#!/bin/bash
+
+# Provide the option to skip the tests
+echo "[Esplorio] Press S to skip tests, press Enter to continue:"
+read REPLY < /dev/tty
+REPLY=$(echo "$REPLY" | tr '[A-Z]' '[a-z]')
+if [ "$REPLY" == "s" ]; then
+    exit 0
+fi
+
+echo "[Esplorio] running tests using 'manage.py test'..."
+
+# Stash any changes to the working tree that are not going to be committed
+git stash -u --keep-index
+# Actually run the tests, assuming you're running in a virtualenv already
+$VIRTUAL_ENV/bin/python esplorio/manage.py test
+# Unstash things
+git reset --hard
+git stash pop --quiet --index
