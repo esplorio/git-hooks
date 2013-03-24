@@ -13,6 +13,10 @@ echo "[Esplorio] running tests using 'manage.py test'..."
 # Stash any changes to the working tree that are not going to be committed
 git stash -u --keep-index
 # Actually run the tests, assuming you're running in a virtualenv already
+if [ "x$VIRTUAL_ENV" == "x" ]; then
+    echo "You must have the Esplorio virtualenv activated to run tests!"
+    exit 1
+fi
 $VIRTUAL_ENV/bin/python esplorio/manage.py test
 # Unstash things
 git reset --hard
