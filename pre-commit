@@ -1,18 +1,90 @@
-#!/bin/bash
+#!/usr/bin/env python
+#
+# Git pre-commit hook for Esplorio. Serves a number of purposes, including
+# testing and code quality
+#
+import sys
+import os
+import subprocess
+import contextlib
 
-# Provide the option to skip the tests
-echo "[Esplorio] Press S to skip tests, press Enter to continue:"
-read REPLY < /dev/tty
-REPLY=$(echo "$REPLY" | tr '[A-Z]' '[a-z]')
-if [ "$REPLY" == "s" ]; then
-    exit 0
-fi
 
-echo "[Esplorio] running tests using 'manage.py test'..."
+@contextlib.contextmanager
+def wrapped_stdin():
+    # Since git hooks run with stdin pointed at /dev/tty,
+    # connect the two up so we can actually do some user input
+    _stdin = sys.stdin
+    sys.stdin = open('/dev/tty', 'r')
+    yield
+    sys.stdin = _stdin
 
-# Actually run the tests, assuming you're running in a virtualenv already
-if [ "x$VIRTUAL_ENV" == "x" ]; then
-    echo "You must have the Esplorio virtualenv activated to run tests!"
-    exit 1
-fi
-$VIRTUAL_ENV/bin/python esplorio/manage.py test
+
+class NoVirtualEnvError(AssertionError):
+    msg = "You must have the virtualenv active to run tests!"
+
+
+class NonZeroReturnCodeError(AssertionError):
+    msg = "Failed"
+
+
+class LintFailedError(AssertionError):
+    msg = "Code needs cleanup"
+
+
+LINT_MAPPINGS = {
+    '.js': ['jsl', '-process'],
+    '.py': ['pylint', '-r', 'n']
+}
+
+def run_lint_checks():
+    # Get list of modified files to run lint checks on
+    output = subprocess.check_output(["git", "status", "--porcelain"])
+    # git status --porcelain returns a table of statuses and files, like:
+    #   M  esplorio/assets/js/main.js
+    # Try and run lint on each of the modified files, collecting the return
+    # codes in a variable which we check for non-zero (i.e. error) status
+    # later.
+    retcode = 0
+    file_statuses = [l for l in output.split('\n') if l]
+    for fs in file_statuses:
+        _, filename = fs.split(None, 1)
+        # run the appropriate lint based on file type
+        _, ftype = os.path.splitext(filename)
+        if ftype not in LINT_MAPPINGS:
+            raise AssertionError("Don't know file type!")
+        retcode += subprocess.call(LINT_MAPPINGS[ftype] + [filename])
+    if retcode > 0:
+        raise LintFailedError()
+
+
+def run_tests():
+    # Provide the option to skip the tests
+    with wrapped_stdin():
+        reply = raw_input("[Esplorio] Press S to skip, Enter to continue:")
+    if reply.lower() == "s":
+        return 0
+    # Actually run the tests, checking to see if the virtualenv is active first
+    print "[Esplorio] running tests using 'manage.py test'..."
+    if os.environ.get('VIRTUAL_ENV', '') == '':
+        raise NoVirtualEnvError()
+    _cmd = "%s/bin/python" % os.environ['VIRTUAL_ENV']
+    subprocess.check_call([_cmd, "esplorio/manage.py", "test"])
+
+
+def main():
+    run_lint_checks()
+    # run_tests()
+
+
+if __name__ == '__main__':
+    try:
+        main()
+        sys.exit(0)
+    except KeyboardInterrupt:
+        print '\n\nProgram interrupted. Commit aborted.'
+        sys.exit(1)
+    except Exception as e:
+        print e
+        print "[Esplorio] " + getattr(e, "msg", "Error occurred")
+        print "Commit aborted."
+        sys.exit(1)
