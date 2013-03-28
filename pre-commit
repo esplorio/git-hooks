@@ -35,6 +35,7 @@ class LintFailedError(AssertionError):
 # about in our code, and which shouldn't abort the commit
 PYLINT_IGNORE = [
     'W0614',  # unused modules from wildcard import
+    'W0142',  # using *args or **kwargs
 ]
 
 # Mappings from file types to lint programs
