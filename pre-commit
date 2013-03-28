@@ -73,7 +73,11 @@ def run_lint_checks():
     overall_retcode = 0
     file_statuses = [l for l in output.split('\n') if l]
     for fs in file_statuses:
-        _, filename = fs.split(None, 1)
+        modtype, filename = fs.split(None, 1)
+        if modtype == '??':
+            # if git doesn't know about the file, i.e. it's not tracked, then
+            # don't mess about with it
+            continue
         # run the appropriate lint based on file type
         _, ftype = os.path.splitext(filename)
         if ftype not in LINT_MAPPINGS:
