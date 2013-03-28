@@ -39,6 +39,7 @@ PYLINT_IGNORE = [
     'W0212',  # accessing _id and other 'protected' members
     'C0103',  # *any* 2/3 letter var names (IMO 'db' and 'dt' are OK!)
     'R0914',  # >15 local variables in a function
+    'R0904',  # >20 public methods in a class
     'C0301',  # lines >80 chars
     'E1120',  # "no value passed for 'cls' in function call" -- broken
               #    understanding of class methods?
