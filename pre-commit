@@ -31,9 +31,25 @@ class LintFailedError(AssertionError):
     msg = "Code needs cleanup"
 
 
+# A list of error / warning / style messages that PyLint shouldn't complain
+# about in our code, and which shouldn't abort the commit
+PYLINT_IGNORE = [
+    'W0614',  # unused modules from wildcard import
+]
+
+# Mappings from file types to lint programs
 LINT_MAPPINGS = {
     '.js': ['jsl', '-process'],
-    '.py': ['pylint', '-r', 'n']
+    # Set up pylint to include error message IDs, and not to output the
+    # verbose summary report. Also disable the specified error types
+    '.py': ['pylint', '-r', 'n', '-i', 'y', '-d', ','.join(PYLINT_IGNORE)]
+}
+
+# Some linters have particular rules about how their return codes should be
+# handled, e.g. jsl returns a code of 1 on a warning, which we don't think
+# is that big a deal
+LINT_RETURN_HANDLERS = {
+    '.js': lambda x: 0 if x == 1 else x
 }
 
 def run_lint_checks():
@@ -44,7 +60,7 @@ def run_lint_checks():
     # Try and run lint on each of the modified files, collecting the return
     # codes in a variable which we check for non-zero (i.e. error) status
     # later.
-    retcode = 0
+    overall_retcode = 0
     file_statuses = [l for l in output.split('\n') if l]
     for fs in file_statuses:
         _, filename = fs.split(None, 1)
@@ -52,8 +68,12 @@ def run_lint_checks():
         _, ftype = os.path.splitext(filename)
         if ftype not in LINT_MAPPINGS:
             raise AssertionError("Don't know file type!")
-        retcode += subprocess.call(LINT_MAPPINGS[ftype] + [filename])
-    if retcode > 0:
+        retcode = subprocess.call(LINT_MAPPINGS[ftype] + [filename])
+        if ftype in LINT_RETURN_HANDLERS:
+            overall_retcode += LINT_RETURN_HANDLERS[ftype](retcode)
+        else:
+            overall_retcode += retcode
+    if overall_retcode > 0:
         raise LintFailedError()
 
 
