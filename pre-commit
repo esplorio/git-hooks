@@ -36,11 +36,19 @@ class LintFailedError(AssertionError):
 PYLINT_IGNORE = [
     'W0614',  # unused modules from wildcard import
     'W0142',  # using *args or **kwargs
+    'W0212',  # accessing _id and other 'protected' members
+    'C0103',  # *any* 2/3 letter var names (IMO 'db' and 'dt' are OK!)
+    'R0914',  # >15 local variables in a function
+    'C0301',  # lines >80 chars
+    'E1120',  # "no value passed for 'cls' in function call" -- broken
+              #    understanding of class methods?
+    'E1103',  # 'x' has no 'y' member, but could not infer some types
+    # 'E1101',  # 'x' has no 'y' member -- code too dynamic for pylint?
 ]
 
 # Mappings from file types to lint programs
 LINT_MAPPINGS = {
-    '.js': ['jsl', '-process'],
+    '.js': ['jsl', '-nosummary', '-nologo', '-process'],
     # Set up pylint to include error message IDs, and not to output the
     # verbose summary report. Also disable the specified error types
     '.py': ['pylint', '-r', 'n', '-i', 'y', '-d', ','.join(PYLINT_IGNORE)]
@@ -68,7 +76,7 @@ def run_lint_checks():
         # run the appropriate lint based on file type
         _, ftype = os.path.splitext(filename)
         if ftype not in LINT_MAPPINGS:
-            raise AssertionError("Don't know file type!")
+            continue  # Ignore file types we don't know how to lint
         retcode = subprocess.call(LINT_MAPPINGS[ftype] + [filename])
         if ftype in LINT_RETURN_HANDLERS:
             overall_retcode += LINT_RETURN_HANDLERS[ftype](retcode)
