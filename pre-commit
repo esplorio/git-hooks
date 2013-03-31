@@ -45,6 +45,9 @@ PYLINT_IGNORE = [
               #    understanding of class methods?
     'E1103',  # 'x' has no 'y' member, but could not infer some types
     # 'E1101',  # 'x' has no 'y' member -- code too dynamic for pylint?
+    'W0402',  # use of a deprecated module
+    'R0912',  # too many branches
+    'R0915',  # too many statements
 ]
 
 # Mappings from file types to lint programs
