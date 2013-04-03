@@ -47,6 +47,9 @@ PYLINT_IGNORE = [
     'R0922',  # Abstract class is only referenced <small number> of times
     'W0231',  # Init method from base class is not called
     # 'E1101',  # 'x' has no 'y' member -- code too dynamic for pylint?
+    'W0402',  # use of a deprecated module
+    'R0912',  # too many branches
+    'R0915',  # too many statements
 ]
 
 # Mappings from file types to lint programs
@@ -84,7 +87,14 @@ def run_lint_checks():
         _, ftype = os.path.splitext(filename)
         if ftype not in LINT_MAPPINGS:
             continue  # Ignore file types we don't know how to lint
-        retcode = subprocess.call(LINT_MAPPINGS[ftype] + [filename])
+        try:
+            retcode = subprocess.call(LINT_MAPPINGS[ftype] + [filename])
+        except OSError as e:
+            if e.errno == 2:
+                # Could be because they don't have the lint handler installed.
+                raise AssertionError(
+                    "Could not find '%s'. Are you sure it's installed?" %
+                    LINT_MAPPINGS[ftype][0])
         if ftype in LINT_RETURN_HANDLERS:
             overall_retcode += LINT_RETURN_HANDLERS[ftype](retcode)
         else:
