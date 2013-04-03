@@ -44,6 +44,8 @@ PYLINT_IGNORE = [
     'E1120',  # "no value passed for 'cls' in function call" -- broken
               #    understanding of class methods?
     'E1103',  # 'x' has no 'y' member, but could not infer some types
+    'R0922',  # Abstract class is only referenced <small number> of times
+    'W0231',  # Init method from base class is not called
     # 'E1101',  # 'x' has no 'y' member -- code too dynamic for pylint?
 ]
 
