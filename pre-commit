@@ -49,7 +49,7 @@ PYLINT_IGNORE = [
     'W0402',  # use of a deprecated module
     'R0912',  # too many branches
     'R0915',  # too many statements
-    'R0922',  # Abstract class not referenced
+    'R0921',  # Abstract class not referenced
 ]
 
 # Mappings from file types to lint programs
