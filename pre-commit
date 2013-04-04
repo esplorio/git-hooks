@@ -40,7 +40,6 @@ PYLINT_IGNORE = [
     'C0103',  # *any* 2/3 letter var names (IMO 'db' and 'dt' are OK!)
     'R0914',  # >15 local variables in a function
     'R0904',  # >20 public methods in a class
-    'C0301',  # lines >80 chars
     'E1120',  # "no value passed for 'cls' in function call" -- broken
               #    understanding of class methods?
     'E1103',  # 'x' has no 'y' member, but could not infer some types
@@ -50,6 +49,7 @@ PYLINT_IGNORE = [
     'W0402',  # use of a deprecated module
     'R0912',  # too many branches
     'R0915',  # too many statements
+    'R0922',  # Abstract class not referenced
 ]
 
 # Mappings from file types to lint programs
