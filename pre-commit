@@ -50,6 +50,8 @@ PYLINT_IGNORE = [
     'R0912',  # too many branches
     'R0915',  # too many statements
     'R0921',  # Abstract class not referenced
+    'R0901',  # Too many ancestors (max 7)
+    'R0913',  # Too many arguments (max 5)
 ]
 
 # Mappings from file types to lint programs
